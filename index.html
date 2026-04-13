@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobGenius Chile - Conexión Segura</title>
+    <title>JobGenius Chile - Motor de Búsqueda Local</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -11,100 +11,106 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .chile-bar { height: 4px; background: linear-gradient(90deg, #0033a0 0%, #ffffff 50%, #d52b1e 100%); }
-        .loader-ring { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #0033a0; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .chile-flag-gradient { background: linear-gradient(90deg, #0033a0 0%, #ffffff 50%, #d52b1e 100%); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="chile-bar"></div>
+<body class="bg-[#f8fafc] min-h-screen pb-12">
+    <div class="chile-flag-gradient h-1.5 w-full fixed top-0 z-[100]"></div>
     
-    <nav class="bg-white border-b border-gray-200 py-4 shadow-sm">
-        <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+    <nav class="glass sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg text-white">
-                    <i class="fas fa-briefcase"></i>
+                <div class="bg-blue-700 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-rocket"></i>
                 </div>
-                <h1 class="font-extrabold text-xl tracking-tight text-gray-900">JOBGENIUS <span class="text-blue-600">CHILE</span></h1>
+                <div>
+                    <h1 class="font-extrabold text-slate-900 tracking-tighter">JOBGENIUS <span class="text-blue-600">CL</span></h1>
+                    <p id="cityDisplay" class="text-[10px] font-bold text-slate-400 uppercase">Detectando Ciudad...</p>
+                </div>
             </div>
-            <div id="locationBadge" class="bg-blue-50 text-blue-700 text-[10px] font-bold px-3 py-1.5 rounded-full border border-blue-100 flex items-center gap-2">
-                <i class="fas fa-location-dot"></i> <span id="cityName">CHILE (NACIONAL)</span>
+            <div id="statusBadge" class="hidden sm:flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-100 text-[10px] font-bold">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> SISTEMA ACTIVO
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-6 py-10 space-y-8">
-        <!-- Area de Carga -->
-        <section class="bg-white rounded-3xl p-10 border border-gray-100 shadow-xl text-center space-y-6">
-            <div id="dropZone" class="border-4 border-dashed border-gray-100 rounded-[40px] py-16 px-10 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group relative">
+    <main class="max-w-4xl mx-auto px-6 mt-10 space-y-8">
+        <!-- Subida de Archivo -->
+        <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
+            <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl py-12 px-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all group">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx">
-                <div class="mb-4 inline-flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-600 rounded-full group-hover:scale-110 transition">
-                    <i class="fas fa-file-arrow-up text-3xl"></i>
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition">
+                    <i class="fas fa-file-invoice text-2xl"></i>
                 </div>
-                <h2 class="text-2xl font-extrabold text-gray-800">Sube tu CV</h2>
-                <p class="text-gray-400 max-w-sm mx-auto text-sm mt-2">Analizaremos tu estabilidad laboral y buscaremos vacantes locales en Chile de forma automática.</p>
+                <h2 class="text-xl font-extrabold text-slate-800">Cargar Currículum</h2>
+                <p class="text-slate-400 text-sm mt-1">PDF o Word. Analizaremos tu estabilidad laboral en Chile.</p>
             </div>
 
-            <!-- Error Feedback -->
-            <div id="errorPanel" class="hidden p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-left">
-                <i class="fas fa-circle-exclamation text-red-500"></i>
+            <div id="errorBox" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-red-500 mt-1"></i>
+                <div class="flex-1">
+                    <p class="text-xs font-bold text-red-700 uppercase">Error Detectado</p>
+                    <p id="errorContent" class="text-xs text-red-600 mt-0.5 leading-relaxed"></p>
+                </div>
+                <button onclick="location.reload()" class="text-[10px] font-bold bg-white px-3 py-1.5 rounded-lg border border-red-200 shadow-sm">REINTENTAR</button>
+            </div>
+        </div>
+
+        <!-- Perfil Detectado -->
+        <div id="profileSection" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="bg-slate-900 rounded-[32px] p-8 text-white flex flex-col md:flex-row gap-6 items-center shadow-xl">
+                <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center text-3xl shrink-0">
+                    <i class="fas fa-user-check"></i>
+                </div>
                 <div>
-                    <p class="text-xs font-bold text-red-700 uppercase">Error de Sistema</p>
-                    <p id="errorMsg" class="text-xs text-red-600"></p>
-                </div>
-                <button onclick="location.reload()" class="ml-auto text-[10px] font-bold bg-white px-3 py-1 rounded-lg border border-red-200">REINTENTAR</button>
-            </div>
-        </section>
-
-        <!-- Resultados de Perfil -->
-        <section id="profileCard" class="hidden animate-in fade-in slide-in-from-bottom-5 duration-500">
-            <div class="bg-gray-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-10">
-                    <i class="fas fa-user-tie text-9xl"></i>
-                </div>
-                <div class="relative z-10 space-y-2">
-                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-400/10 px-3 py-1 rounded-full">Perfil Detectado</span>
-                    <h2 id="userName" class="text-3xl font-extrabold tracking-tight">---</h2>
-                    <p class="text-gray-400 font-medium">Core de Experiencia: <span id="userRole" class="text-white font-bold">---</span></p>
+                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Análisis de Estabilidad</span>
+                    <h2 id="pName" class="text-2xl font-extrabold mb-1 tracking-tight">Candidato</h2>
+                    <p class="text-slate-400 text-sm">Tu especialidad principal según años de experiencia es: <span id="pRole" class="text-white font-bold">---</span></p>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Ofertas Laborales -->
-        <section id="jobsSection" class="space-y-6 hidden">
-            <h3 class="text-xl font-extrabold text-gray-800 flex items-center gap-3">
-                <i class="fas fa-magnifying-glass-location text-blue-600"></i> Ofertas en <span id="cityTitle">tu zona</span>
-            </h3>
-            <div id="jobsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Se llena con IA -->
+        <!-- Lista de Empleos -->
+        <div id="jobsSection" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt text-blue-600"></i> Empleos en <span id="targetCity" class="text-blue-600">Chile</span>
+                </h3>
             </div>
-        </section>
+            <div id="jobsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
 
-        <!-- Editor Final -->
-        <section id="editorView" class="hidden space-y-6">
-            <div class="bg-white rounded-[40px] p-10 border border-gray-100 shadow-2xl">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 pb-8 border-b border-gray-100">
+        <!-- Área de Edición -->
+        <div id="editorSection" class="hidden animate-in zoom-in duration-500">
+            <div class="bg-white rounded-[40px] p-8 shadow-2xl border border-slate-100">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
                     <div>
-                        <h4 class="text-2xl font-extrabold text-gray-900" id="targetJob">Personalización de CV</h4>
-                        <p class="text-blue-600 font-bold" id="targetCompany">---</p>
+                        <h2 id="editTitle" class="text-xl font-extrabold text-slate-900 leading-tight">---</h2>
+                        <p id="editCompany" class="text-blue-600 text-sm font-bold"></p>
                     </div>
-                    <button onclick="downloadPDF()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-lg shadow-blue-200">
-                        <i class="fas fa-download"></i> DESCARGAR PDF
+                    <button onclick="exportToPDF()" class="w-full md:w-auto bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-3 hover:bg-blue-700 transition shadow-xl">
+                        <i class="fas fa-file-pdf"></i> DESCARGAR CV CHILE
                     </button>
                 </div>
-                <textarea id="finalTextarea" class="w-full h-[600px] p-8 bg-gray-50 rounded-3xl border-2 border-gray-50 focus:border-blue-100 focus:bg-white transition-all outline-none text-gray-700 leading-relaxed font-sans"></textarea>
+                <div class="relative">
+                    <div class="absolute -top-3 left-6 bg-white px-2 text-[10px] font-bold text-slate-400">BORRADOR OPTIMIZADO PARA CHILE</div>
+                    <textarea id="cvText" class="w-full h-[500px] p-8 bg-slate-50 border-2 border-slate-50 rounded-[32px] text-sm text-slate-700 leading-relaxed outline-none focus:border-blue-100 transition-all font-sans"></textarea>
+                </div>
             </div>
-        </section>
+        </div>
     </main>
 
-    <!-- Cargador Global -->
-    <div id="globalLoader" class="fixed inset-0 bg-gray-900/80 backdrop-blur-md z-[100] hidden flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[50px] shadow-2xl flex flex-col items-center max-w-sm w-full">
-            <div class="loader-ring mb-6"></div>
-            <p id="loaderTitle" class="text-gray-900 font-extrabold text-lg">Analizando...</p>
-            <p id="loaderDesc" class="text-gray-400 text-sm mt-1 text-center font-medium">Esto toma unos segundos dependiendo del tamaño de tu CV.</p>
+    <!-- Cargador -->
+    <div id="loader" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-6 text-center">
+        <div class="bg-white p-10 rounded-[48px] shadow-2xl flex flex-col items-center max-w-xs w-full">
+            <div class="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full spin mb-4"></div>
+            <p id="lTitle" class="text-slate-900 font-extrabold text-sm uppercase tracking-tight">Procesando...</p>
+            <p id="lDesc" class="text-slate-400 text-[10px] mt-2 font-medium">Sincronizando con vacantes en Chile</p>
         </div>
     </div>
 
@@ -114,33 +120,34 @@
         
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        let userCity = "Chile";
-        let userProfile = null;
-        let originalText = "";
+        let userLoc = "Chile";
+        let rawText = "";
+        let profileData = null;
 
-        // Geo
+        // Geolocalización
         window.onload = () => {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (p) => {
                     try {
-                        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+                        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`);
                         const d = await r.json();
-                        userCity = d.address.city || d.address.town || d.address.state || "Chile";
-                        document.getElementById('cityName').innerText = userCity.toUpperCase();
-                        document.getElementById('cityTitle').innerText = userCity;
-                    } catch (e) { console.warn("Usando Chile por defecto"); }
+                        userLoc = d.address.city || d.address.town || d.address.state || "Chile";
+                        document.getElementById('cityDisplay').innerText = `Ubicación: ${userLoc}, CL`;
+                        document.getElementById('targetCity').innerText = userLoc;
+                    } catch (e) { console.warn("Geo error"); }
                 });
             }
         };
 
-        const fileInput = document.getElementById('fileInput');
-        document.getElementById('dropZone').onclick = () => fileInput.click();
+        // Procesar archivos
+        const fIn = document.getElementById('fileInput');
+        document.getElementById('dropZone').onclick = () => fIn.click();
 
-        fileInput.onchange = async (e) => {
+        fIn.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            setLoading(true, "Procesando Archivo", "Extrayendo texto del documento...");
+            setL(true, "Leyendo Archivo", "Extrayendo trayectoria profesional...");
             try {
                 let text = "";
                 if (file.type === "application/pdf") {
@@ -148,8 +155,8 @@
                     const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
-                        const content = await page.getTextContent();
-                        text += content.items.map(s => s.str).join(" ") + " ";
+                        const c = await page.getTextContent();
+                        text += c.items.map(s => s.str).join(" ") + " ";
                     }
                 } else {
                     const ab = await file.arrayBuffer();
@@ -157,158 +164,172 @@
                     text = res.value;
                 }
 
-                if (!text.trim()) throw new Error("No se pudo leer texto del archivo.");
-                originalText = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "); // Limpieza básica
-                await analyzeCV(originalText);
+                if (!text.trim()) throw new Error("Documento sin contenido legible.");
+                
+                // --- PROTECCIÓN: Anonimizar datos antes de enviar a IA ---
+                rawText = text
+                    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]") // Quitar correos
+                    .replace(/\+?\d{7,15}/g, "[TELEFONO]") // Quitar números largos
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, " "); // Quitar caracteres de control
+
+                await analyzeExperience(rawText);
             } catch (err) {
-                showError("Error de lectura: " + err.message);
-            } finally { setLoading(false); }
+                showErr("Error en archivo: " + err.message);
+            } finally { setL(false); }
         };
 
-        async function aiRequest(prompt, content, search = false) {
-            const safetySettings = [
+        async function ai(prompt, content, search = false) {
+            // Configuramos seguridad permisiva para evitar bloqueos por falsos positivos
+            const safety = [
                 { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                 { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
                 { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
                 { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
             ];
 
-            const payload = {
-                contents: [{ parts: [{ text: `${prompt}\n\nCONTENIDO:\n${content}` }] }],
-                safetySettings: safetySettings
+            const body = {
+                contents: [{ parts: [{ text: `${prompt}\n\nTEXTO:\n${content.substring(0, 6000)}` }] }],
+                safetySettings: safety,
+                generationConfig: { responseMimeType: "application/json" }
             };
 
-            if (search) payload.tools = [{ google_search: {} }];
+            if (search) body.tools = [{ google_search: {} }];
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(body)
             });
 
-            const data = await response.json();
-            if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                throw new Error("Respuesta de IA bloqueada por filtros de seguridad.");
+            const data = await res.json();
+            
+            if (data.promptFeedback?.blockReason) {
+                throw new Error(`El sistema de seguridad de Google bloqueó el contenido por: ${data.promptFeedback.blockReason}. Intenta subir una versión de tu CV con menos datos personales.`);
             }
+
+            if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                throw new Error("La IA no pudo procesar este CV. Intenta con un archivo más simple.");
+            }
+
             return data.candidates[0].content.parts[0].text;
         }
 
-        async function analyzeCV(text) {
-            setLoading(true, "Analizando CV", "Buscando estabilidad laboral...");
-            // Usamos un prompt más descriptivo para evitar bloqueos
-            const prompt = `Extrae información profesional de este CV. 
-            Identifica el nombre del usuario y el cargo donde tiene más experiencia (estabilidad).
-            Devuelve SOLO un objeto JSON plano con este formato: {"nombre": "", "cargo_estable": "", "resumen": ""}`;
+        async function analyzeExperience(text) {
+            setL(true, "Analizando Estabilidad", "Calculando core-skills según historial...");
+            // Instrucciones neutrales para evitar activar filtros de "identidad personal"
+            const prompt = `Actúa como un reclutador en Chile. Analiza la trayectoria profesional en el texto adjunto.
+            Identifica el cargo donde esta trayectoria muestra más años de permanencia (estabilidad laboral).
+            Responde en JSON: {"nombre": "Solo el nombre de pila", "cargo": "Título del cargo más estable", "resumen_corto": ""}`;
 
             try {
-                const res = await aiRequest(prompt, text.substring(0, 4000));
-                // Extraer el JSON del texto si la IA añade explicaciones
-                const jsonMatch = res.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) throw new Error("Respuesta no válida.");
-                userProfile = JSON.parse(jsonMatch[0]);
+                const res = await ai(prompt, text);
+                profileData = JSON.parse(res);
 
-                document.getElementById('profileCard').classList.remove('hidden');
-                document.getElementById('userName').innerText = userProfile.nombre;
-                document.getElementById('userRole').innerText = userProfile.cargo_estable;
+                document.getElementById('profileSection').classList.remove('hidden');
+                document.getElementById('pName').innerText = profileData.nombre || "Candidato";
+                document.getElementById('pRole').innerText = profileData.cargo;
                 
-                await searchJobs();
-            } catch (e) { showError("Error de IA: " + e.message); }
+                await fetchJobs();
+            } catch (e) { showErr("Error IA: " + e.message); }
         }
 
-        async function searchJobs() {
-            setLoading(true, "Buscando Empleos", `Buscando ofertas para ${userProfile.cargo_estable} en ${userCity}...`);
-            const prompt = `Busca 4 ofertas laborales vigentes en Chile para: ${userProfile.cargo_estable}. 
-            Ciudad prioritaria: ${userCity}. 
-            Devuelve SOLO un array JSON con: [{"titulo": "", "empresa": "", "ciudad": "", "descripcion": ""}]`;
+        async function fetchJobs() {
+            setL(true, "Buscando Vacantes", `Explorando mercado laboral en ${userLoc}...`);
+            const prompt = `Busca 4 ofertas laborales vigentes en Chile para el cargo de: ${profileData.cargo}. 
+            Prioriza resultados en la ciudad o región de ${userLoc}. 
+            Responde en JSON: [{"title": "", "company": "", "loc": "", "desc": ""}]`;
 
             try {
-                const res = await aiRequest(prompt, "", true);
-                const jsonMatch = res.match(/\[[\s\S]*\]/);
-                const jobs = JSON.parse(jsonMatch[0]);
-                
+                const res = await ai(prompt, "", true);
+                const jobs = JSON.parse(res);
                 renderJobs(jobs);
-            } catch (e) { showError("Error en búsqueda: " + e.message); }
+            } catch (e) { showErr("Error al buscar empleos: " + e.message); }
         }
 
         function renderJobs(jobs) {
-            document.getElementById('jobsSection').classList.remove('hidden');
             const grid = document.getElementById('jobsGrid');
             grid.innerHTML = "";
+            document.getElementById('jobsSection').classList.remove('hidden');
 
             jobs.forEach(j => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-8 rounded-[35px] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group";
+                card.className = "bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all cursor-pointer group";
                 card.onclick = () => adaptCV(j);
                 card.innerHTML = `
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="bg-blue-50 text-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-                            <i class="fas fa-building"></i>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fas fa-briefcase"></i>
                         </div>
-                        <span class="text-[9px] font-black bg-gray-100 text-gray-500 px-3 py-1 rounded-full uppercase tracking-widest">${j.ciudad || userCity}</span>
+                        <span class="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded uppercase tracking-tighter">${j.loc || userLoc}</span>
                     </div>
-                    <h4 class="font-extrabold text-gray-900 group-hover:text-blue-600 transition mb-1">${j.titulo}</h4>
-                    <p class="text-sm font-bold text-gray-400 mb-6 uppercase tracking-tight">${j.empresa}</p>
-                    <div class="bg-gray-50 text-[10px] font-bold text-gray-400 py-3 rounded-2xl text-center group-hover:bg-blue-50 group-hover:text-blue-600 transition uppercase tracking-widest">Personalizar CV</div>
+                    <h4 class="font-extrabold text-slate-800 text-sm leading-tight mb-1">${j.title}</h4>
+                    <p class="text-[11px] font-bold text-blue-600 mb-4 uppercase">${j.company}</p>
+                    <div class="text-[10px] font-black text-center text-slate-400 group-hover:text-blue-600 transition uppercase tracking-widest">Personalizar CV</div>
                 `;
                 grid.appendChild(card);
             });
-            setLoading(false);
+            setL(false);
         }
 
         async function adaptCV(job) {
-            setLoading(true, "Personalizando", "Redactando CV con vocabulario profesional chileno...");
-            const prompt = `Escribe el contenido completo de un CV para postular a: ${job.titulo} en ${job.empresa}.
-            Básate en este CV original: ${originalText}.
-            Resalta la experiencia en ${userProfile.cargo_estable}.
-            Usa un tono formal de Chile. Devuelve solo el texto del CV.`;
+            setL(true, "Personalizando CV", "Ajustando perfil para mercado chileno...");
+            // Usamos formato de texto plano para evitar bloqueos por formato JSON en el paso final
+            const body = {
+                contents: [{ parts: [{ text: `Escribe un currículum profesional completo para postular a ${job.title} en ${job.company}. 
+                Resalta la experiencia en ${profileData.cargo} porque es donde hay más estabilidad. 
+                Usa modismos profesionales de Chile. 
+                CV Original: ${rawText.substring(0, 3000)}` }] }],
+                safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" } ]
+            };
 
             try {
-                const res = await aiRequest(prompt, "");
-                document.getElementById('editorView').classList.remove('hidden');
-                document.getElementById('targetJob').innerText = job.titulo;
-                document.getElementById('targetCompany').innerText = job.empresa;
-                document.getElementById('finalTextarea').value = res.trim();
-                document.getElementById('editorView').scrollIntoView({ behavior: 'smooth' });
-            } catch (e) { showError("Error al adaptar: " + e.message); }
-            finally { setLoading(false); }
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const d = await r.json();
+                const cvFinal = d.candidates[0].content.parts[0].text;
+
+                document.getElementById('editorSection').classList.remove('hidden');
+                document.getElementById('editTitle').innerText = job.title;
+                document.getElementById('editCompany').innerText = job.company;
+                document.getElementById('cvText').value = cvFinal;
+                document.getElementById('editorSection').scrollIntoView({ behavior: 'smooth' });
+            } catch (e) { showErr("Error al adaptar CV: " + e.message); }
+            finally { setL(false); }
         }
 
-        function setLoading(show, title = "", desc = "") {
-            const l = document.getElementById('globalLoader');
-            if (show) {
+        function setL(s, t, d) {
+            const l = document.getElementById('loader');
+            if (s) {
                 l.classList.remove('hidden');
-                document.getElementById('loaderTitle').innerText = title;
-                document.getElementById('loaderDesc').innerText = desc;
+                document.getElementById('lTitle').innerText = t;
+                document.getElementById('lDesc').innerText = d;
             } else l.classList.add('hidden');
         }
 
-        function showError(msg) {
-            document.getElementById('errorPanel').classList.remove('hidden');
-            document.getElementById('errorMsg').innerText = msg;
-            setLoading(false);
+        function showErr(m) {
+            const b = document.getElementById('errorBox');
+            b.classList.remove('hidden');
+            document.getElementById('errorContent').innerText = m;
+            setL(false);
         }
 
-        function downloadPDF() {
+        function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const val = document.getElementById('finalTextarea').value;
-            
+            const content = document.getElementById('cvText').value;
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
-            doc.text(userProfile.nombre.toUpperCase(), 20, 25);
-            
+            doc.text(profileData.nombre.toUpperCase(), 20, 25);
             doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
             doc.setTextColor(100);
-            doc.text(`CANDIDATO PARA: ${document.getElementById('targetJob').innerText} EN CHILE`, 20, 32);
-            
-            doc.line(20, 38, 190, 38);
-            
-            doc.setTextColor(60);
-            const lines = doc.splitTextToSize(val, 170);
-            doc.text(lines, 20, 50);
-            
-            doc.save(`CV_CHILE_${userProfile.nombre.replace(/\s/g, '_')}.pdf`);
+            doc.text(`POSTULACIÓN: ${document.getElementById('editTitle').innerText} | CHILE`, 20, 32);
+            doc.line(20, 36, 190, 36);
+            doc.setTextColor(50);
+            const lines = doc.splitTextToSize(content, 170);
+            doc.text(lines, 20, 45);
+            doc.save(`CV_${profileData.nombre}_CL.pdf`);
         }
     </script>
 </body>
