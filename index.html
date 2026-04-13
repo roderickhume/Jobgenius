@@ -3,125 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA JobGenius Chile - Búsqueda Local Georreferenciada</title>
+    <title>IA JobGenius Chile - Versión Estable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Librerías con versiones estables y workers configurados -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .chile-gradient { background: linear-gradient(135deg, #0039a6 0%, #d52b1e 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .loader { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #0039a6; border-radius: 50%; animation: spin 1s linear infinite; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .chile-brand { background: linear-gradient(135deg, #0033a0 0%, #d52b1e 100%); }
+        .loader-spin { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #0033a0; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen text-slate-900">
 
-    <!-- Navbar -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-[60] shadow-sm">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 chile-gradient rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-map-marker-alt text-white"></i>
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 chile-brand rounded-xl flex items-center justify-center text-white">
+                    <i class="fas fa-flag"></i>
                 </div>
-                <div>
-                    <h1 class="text-lg font-extrabold text-slate-800 leading-none">JobGenius <span class="text-blue-700">Chile</span></h1>
-                    <p id="geoDisplay" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Detectando ubicación...</p>
+                <div class="hidden sm:block">
+                    <h1 class="text-lg font-bold leading-none">JobGenius <span class="text-blue-700">CL</span></h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Buscador Inteligente</p>
                 </div>
             </div>
-            <div id="locationStatus" class="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full">
-                <i class="fas fa-satellite"></i> <span id="currentCity">Chile (Nacional)</span>
+            <div id="cityIndicator" class="text-[10px] sm:text-xs font-bold bg-blue-50 text-blue-700 px-3 py-2 rounded-full flex items-center gap-2">
+                <i class="fas fa-location-dot"></i> <span id="userCity">Detectando Ciudad...</span>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Sidebar: CV & Análisis de Estabilidad -->
-        <aside class="lg:col-span-4 space-y-6">
-            <section class="glass-card rounded-3xl p-6 shadow-sm">
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Analizador de Trayectoria</h2>
+        <!-- Panel Izquierdo: Carga y Perfil -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Paso 1: Tu Experiencia</h2>
                 
-                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/30 transition-all">
+                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95">
                     <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx">
-                    <i class="fas fa-file-invoice text-3xl text-slate-300 mb-3"></i>
-                    <p class="text-sm font-bold text-slate-700">Cargar CV Chileno</p>
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-file-upload text-2xl"></i>
+                    </div>
+                    <p class="text-sm font-bold">Cargar CV (PDF o Word)</p>
                     <p class="text-[10px] text-slate-400 mt-1 uppercase">Analizaremos tu estabilidad laboral</p>
                 </div>
 
-                <div id="stabilityCard" class="mt-6 hidden space-y-4">
-                    <div class="p-4 bg-blue-900 rounded-2xl text-white">
-                        <p class="text-[10px] font-bold text-blue-300 uppercase mb-1">Especialidad por Tiempo</p>
-                        <h3 id="stabilityRole" class="font-black text-lg leading-tight">...</h3>
-                        <div class="mt-3 flex items-center gap-2">
-                            <div class="flex-1 bg-blue-800 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-blue-400 h-full w-[85%]"></div>
-                            </div>
-                            <span class="text-[10px] font-bold">CORE SKILL</span>
-                        </div>
+                <div id="debugLog" class="mt-4 hidden p-3 bg-red-50 rounded-xl border border-red-100 text-[10px] text-red-600 font-mono overflow-x-auto"></div>
+
+                <div id="profileView" class="mt-6 hidden animate-in fade-in duration-500">
+                    <div class="p-4 bg-slate-900 rounded-2xl text-white">
+                        <p class="text-[10px] font-bold text-blue-400 uppercase mb-1">Especialidad Principal</p>
+                        <h3 id="coreRole" class="font-black text-lg">---</h3>
+                        <p id="candidateName" class="text-slate-400 text-xs mt-1 italic">---</p>
                     </div>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <section class="glass-card rounded-3xl p-6 shadow-sm">
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Filtros Automáticos</h2>
-                <div class="space-y-3">
-                    <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                        <span class="text-slate-400">País:</span>
-                        <span class="font-bold text-slate-700">Chile 🇨🇱</span>
-                    </div>
-                    <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                        <span class="text-slate-400">Región/Ciudad:</span>
-                        <span id="labelCity" class="font-bold text-blue-600 italic">Buscando...</span>
-                    </div>
-                    <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                        <span class="text-slate-400">Prioridad:</span>
-                        <span class="font-bold text-amber-600">Mayor Estabilidad</span>
-                    </div>
-                </div>
-            </section>
-        </aside>
-
-        <!-- Main Content -->
+        <!-- Panel Derecho: Ofertas y Editor -->
         <div class="lg:col-span-8 space-y-6">
-            
-            <!-- Job Grid -->
             <div id="jobGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Se rellena al cargar CV -->
-                <div class="col-span-full py-20 text-center text-slate-300">
-                    <i class="fas fa-briefcase text-5xl mb-4 opacity-20"></i>
-                    <p class="font-medium">Carga tu CV para ver ofertas en <span id="placeholderLoc">tu zona</span></p>
+                <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                    <i class="fas fa-search-location text-4xl text-slate-200 mb-4"></i>
+                    <p class="text-slate-400 font-medium">Sube tu CV para ver ofertas en Chile</p>
                 </div>
             </div>
 
-            <!-- Editor / PDF Area -->
-            <div id="editorSection" class="hidden">
-                <div class="glass-card rounded-3xl p-8 shadow-lg border-blue-100">
+            <div id="editorPanel" class="hidden">
+                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-blue-50">
                     <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                         <div>
-                            <span class="text-[10px] font-black bg-blue-600 text-white px-2 py-1 rounded mb-2 inline-block">CV OPTIMIZADO</span>
-                            <h2 id="editingJob" class="text-2xl font-black text-slate-800">Cargando...</h2>
-                            <p id="editingCompany" class="text-blue-600 font-bold"></p>
+                            <h2 id="currentJobTitle" class="text-xl font-black text-slate-800">---</h2>
+                            <p id="currentJobCompany" class="text-blue-600 font-bold text-sm"></p>
                         </div>
-                        <button onclick="generatePDF()" class="w-full md:w-auto bg-slate-900 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition shadow-xl">
+                        <button onclick="downloadPDF()" class="w-full md:w-auto bg-slate-900 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2">
                             <i class="fas fa-file-pdf"></i> DESCARGAR CV CHILE
                         </button>
                     </div>
-                    <textarea id="cvEditor" class="w-full h-[500px] p-6 bg-slate-50 border-none rounded-2xl text-sm leading-relaxed text-slate-700 focus:ring-2 focus:ring-blue-500"></textarea>
+                    <textarea id="cvEditor" class="w-full h-[400px] p-6 bg-slate-50 border-none rounded-2xl text-sm leading-relaxed text-slate-700 focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Global Loading Overlay -->
-    <div id="loaderOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex flex-col items-center justify-center">
-        <div class="bg-white p-10 rounded-[40px] shadow-2xl flex flex-col items-center">
-            <div class="loader mb-4"></div>
-            <p id="loaderText" class="text-slate-800 font-bold text-sm">Sincronizando con Chile...</p>
+    <!-- Overlay de Carga -->
+    <div id="fullLoader" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="bg-white p-8 rounded-[40px] shadow-2xl flex flex-col items-center max-w-xs w-full">
+            <div class="loader-spin mb-4"></div>
+            <p id="loaderStatus" class="text-slate-800 font-black text-sm uppercase tracking-wider">Procesando...</p>
         </div>
     </div>
 
@@ -129,30 +106,28 @@
         const apiKey = "";
         const model = "gemini-2.5-flash-preview-09-2025";
         
-        let userLocation = "Chile";
+        // Configuración crítica de PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        let userCity = "Chile";
         let originalText = "";
         let profile = null;
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        // --- 1. Geolocalización Automática ---
+        // --- Geolocalización ---
         window.onload = () => {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
                         const data = await res.json();
-                        userLocation = data.address.city || data.address.town || data.address.state || "Chile";
-                        document.getElementById('currentCity').innerText = userLocation;
-                        document.getElementById('labelCity').innerText = userLocation;
-                        document.getElementById('geoDisplay').innerText = `Ubicación: ${userLocation}, CL`;
-                        document.getElementById('placeholderLoc').innerText = userLocation;
-                    } catch (e) { console.log("Geo error, usando genérico Chile"); }
+                        userCity = data.address.city || data.address.town || data.address.state || "Chile";
+                        document.getElementById('userCity').innerText = userCity;
+                    } catch (e) { console.log("Geo error"); }
                 });
             }
         };
 
-        // --- 2. Carga y Análisis de Estabilidad ---
+        // --- Procesamiento de Archivos ---
         const fileInput = document.getElementById('fileInput');
         document.getElementById('dropZone').onclick = () => fileInput.click();
 
@@ -160,127 +135,159 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            showLoader("Leyendo CV y analizando estabilidad laboral...");
+            toggleLoader(true, "Leyendo archivo...");
+            logDebug(""); // Limpiar log
+
             try {
-                let text = "";
+                let extractedText = "";
+                
                 if (file.type === "application/pdf") {
-                    const ab = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                    const arrayBuffer = await file.arrayBuffer();
+                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                    
+                    const pdf = await loadingTask.promise;
+                    let fullText = "";
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
-                        const content = await page.getTextContent();
-                        text += content.items.map(item => item.str).join(" ") + "\n";
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(s => s.str).join(" ") + " ";
                     }
-                } else {
-                    const ab = await file.arrayBuffer();
-                    const result = await mammoth.extractRawText({ arrayBuffer: ab });
-                    text = result.value;
+                    extractedText = fullText;
+                } 
+                else if (file.type.includes("word") || file.name.endsWith(".docx")) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer });
+                    extractedText = result.value;
+                } 
+                else {
+                    throw new Error("Formato no soportado. Por favor usa PDF o DOCX.");
                 }
-                originalText = text;
-                await analyzeStability(text);
-            } catch (err) { alert("Error al leer archivo"); }
-            finally { hideLoader(); }
+
+                if (!extractedText.trim()) throw new Error("No pudimos extraer texto del archivo. ¿Está vacío o es una imagen?");
+
+                originalText = extractedText;
+                await runAiAnalysis(extractedText);
+
+            } catch (err) {
+                console.error(err);
+                logDebug("Error Detallado: " + err.message);
+                alert("Error al leer el archivo. Revisa el registro de errores bajo el botón de carga.");
+            } finally {
+                toggleLoader(false);
+            }
         };
 
-        async function analyzeStability(text) {
-            showLoader("Calculando core-skills basado en años de experiencia...");
-            const prompt = `Analiza este CV enfocado en estabilidad laboral. 
-            Identifica el cargo donde el usuario ha pasado MÁS TIEMPO y considera ese su "Core Skill".
-            Extrae en JSON: 
-            {"name": "", "email": "", "core_role": "Cargo con más años", "search_terms": ["empleo1", "empleo2"], "summary": ""}`;
+        async function runAiAnalysis(text) {
+            toggleLoader(true, "IA analizando estabilidad laboral...");
             
-            const res = await aiCall(prompt, text);
-            profile = JSON.parse(res);
-            
-            document.getElementById('stabilityCard').classList.remove('hidden');
-            document.getElementById('stabilityRole').innerText = profile.core_role;
-            
-            await findChileJobs();
+            const prompt = `Analiza este CV para el mercado laboral de Chile. 
+            Identifica el cargo con mayor duración (estabilidad). 
+            Responde estrictamente en JSON: 
+            {"name": "", "email": "", "core_role": "Cargo más estable", "summary": "", "search_query": "título para buscar en chile"}`;
+
+            try {
+                const response = await callGemini(prompt, text);
+                profile = JSON.parse(response);
+                
+                document.getElementById('profileView').classList.remove('hidden');
+                document.getElementById('coreRole').innerText = profile.core_role;
+                document.getElementById('candidateName').innerText = profile.name;
+                
+                await fetchChileJobs();
+            } catch (e) {
+                logDebug("Error IA: " + e.message);
+                throw e;
+            }
         }
 
-        // --- 3. Búsqueda con Filtro de Chile + Ciudad ---
-        async function findChileJobs() {
-            showLoader(`Buscando vacantes para ${profile.core_role} en ${userLocation}, Chile...`);
-            const prompt = `Busca 4 ofertas laborales REALES y ACTUALES en Chile para el cargo: ${profile.core_role}.
-            IMPORTANTE: Prioriza resultados en la ciudad de ${userLocation}. 
-            Devuelve JSON: [{"title": "", "company": "", "city": "", "desc": ""}]`;
+        async function fetchChileJobs() {
+            toggleLoader(true, `Buscando empleos en ${userCity}...`);
+            const prompt = `Busca 4 ofertas reales en Chile para: ${profile.search_query}. 
+            Prioriza ofertas en ${userCity}. 
+            Devuelve JSON: [{"title": "", "company": "", "location": "", "desc": ""}]`;
             
-            const res = await aiCall(prompt, "", true);
-            const jobs = JSON.parse(res);
+            const response = await callGemini(prompt, "", true);
+            const jobs = JSON.parse(response);
             renderJobs(jobs);
         }
 
         function renderJobs(jobs) {
-            const container = document.getElementById('jobGrid');
-            container.innerHTML = "";
+            const grid = document.getElementById('jobGrid');
+            grid.innerHTML = "";
             jobs.forEach(j => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:border-blue-500 transition-all cursor-pointer group";
-                div.innerHTML = `
-                    <div class="flex justify-between mb-4">
-                        <span class="text-[9px] font-black bg-blue-50 text-blue-700 px-2 py-1 rounded uppercase tracking-widest">${j.city || userLocation}</span>
-                        <i class="fas fa-chevron-right text-slate-200 group-hover:text-blue-500 transition"></i>
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group";
+                card.onclick = () => adaptForJob(j);
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded uppercase tracking-widest">${j.location || userCity}</span>
+                        <i class="fas fa-arrow-right text-slate-200 group-hover:text-blue-600 transition"></i>
                     </div>
                     <h3 class="font-bold text-slate-800 line-clamp-1">${j.title}</h3>
-                    <p class="text-xs text-blue-600 font-bold mb-4">${j.company}</p>
-                    <button onclick='adaptCv(${JSON.stringify(j).replace(/'/g, "&apos;")})' class="w-full py-3 bg-slate-100 text-slate-700 text-[10px] font-black rounded-xl hover:bg-blue-600 hover:text-white uppercase transition">Personalizar para esta oferta</button>
+                    <p class="text-xs text-slate-400 font-bold mb-4 uppercase">${j.company}</p>
+                    <div class="text-[10px] font-bold text-blue-700 bg-blue-50/50 p-2 rounded-lg text-center">PERSONALIZAR CON IA</div>
                 `;
-                container.appendChild(div);
+                grid.appendChild(card);
             });
-            hideLoader();
         }
 
-        async function adaptCv(job) {
-            showLoader("Adaptando CV con enfoque en estabilidad...");
+        async function adaptForJob(job) {
+            toggleLoader(true, "Redactando CV adaptado...");
             const prompt = `Adapta este CV para el cargo ${job.title} en Chile. 
-            Prioriza y resalta la experiencia en ${profile.core_role} (que es donde el usuario tiene más estabilidad).
-            Usa vocabulario profesional chileno. CV: ${originalText}. Oferta: ${job.desc}`;
+            Usa vocabulario chileno profesional. Resalta la experiencia estable en ${profile.core_role}.
+            CV: ${originalText}. Oferta: ${job.desc}`;
             
-            const res = await aiCall(prompt, "");
-            document.getElementById('editorSection').classList.remove('hidden');
-            document.getElementById('editingJob').innerText = job.title;
-            document.getElementById('editingCompany').innerText = job.company;
-            document.getElementById('cvEditor').value = res;
-            document.getElementById('editorSection').scrollIntoView({ behavior: 'smooth' });
-            hideLoader();
+            const response = await callGemini(prompt, "");
+            document.getElementById('editorPanel').classList.remove('hidden');
+            document.getElementById('currentJobTitle').innerText = job.title;
+            document.getElementById('currentJobCompany').innerText = job.company;
+            document.getElementById('cvEditor').value = response;
+            document.getElementById('editorPanel').scrollIntoView({ behavior: 'smooth' });
+            toggleLoader(false);
         }
 
-        // --- Helpers ---
-        async function aiCall(prompt, input, search = false) {
+        // --- Utilidades ---
+        async function callGemini(prompt, input, useSearch = false) {
             const body = {
-                contents: [{ parts: [{ text: prompt + (input ? "\n\nCV: " + input : "") }] }],
+                contents: [{ parts: [{ text: prompt + (input ? "\n\nCONTENIDO: " + input : "") }] }],
                 generationConfig: { responseMimeType: "application/json" }
             };
-            if (search) body.tools = [{ google_search: {} }];
+            if (useSearch) body.tools = [{ google_search: {} }];
 
-            const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            const d = await r.json();
-            return d.candidates[0].content.parts[0].text;
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
         }
 
-        function generatePDF() {
+        function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const text = document.getElementById('cvEditor').value;
-            doc.setFont("helvetica", "bold");
+            const val = document.getElementById('cvEditor').value;
+            doc.setFontSize(16);
             doc.text(profile.name.toUpperCase(), 20, 20);
             doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Candidato para: ${document.getElementById('editingJob').innerText}`, 20, 28);
+            doc.text(`Postulación: ${document.getElementById('currentJobTitle').innerText}`, 20, 28);
             doc.line(20, 32, 190, 32);
-            const lines = doc.splitTextToSize(text, 170);
+            const lines = doc.splitTextToSize(val, 170);
             doc.text(lines, 20, 40);
             doc.save(`CV_Chile_${profile.name.replace(/\s/g, '_')}.pdf`);
         }
 
-        function showLoader(m) { 
-            document.getElementById('loaderOverlay').classList.remove('hidden');
-            document.getElementById('loaderText').innerText = m;
+        function toggleLoader(show, text = "") {
+            document.getElementById('fullLoader').classList.toggle('hidden', !show);
+            document.getElementById('loaderStatus').innerText = text;
         }
-        function hideLoader() { document.getElementById('loaderOverlay').classList.add('hidden'); }
+
+        function logDebug(msg) {
+            const log = document.getElementById('debugLog');
+            if (!msg) { log.classList.add('hidden'); return; }
+            log.classList.remove('hidden');
+            log.innerText = msg;
+        }
     </script>
 </body>
 </html>
