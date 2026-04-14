@@ -1,1 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobGenius Chile - Motor de Búsqueda Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .chile-flag-gradient { background: linear-gradient(90deg, #0033a0 0%, #ffffff 50%, #d52b1e 100%); }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Barra superior Chile -->
+    <div class="chile-flag-gradient h-1.5 w-full fixed top-0 z-50"></div>
 
+    <nav class="glass sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-700 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-rocket text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-2xl tracking-tighter text-slate-900">JOBGENIUS <span class="text-blue-600">CL</span></h1>
+                </div>
+            </div>
+            <div id="cityDisplay" class="text-sm font-medium text-slate-500">Ubicación: Chile</div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12 space-y-10">
+        <!-- Dropzone -->
+        <div id="dropZone" class="border-3 border-dashed border-slate-300 rounded-3xl p-12 text-center cursor-pointer hover:border-blue-500 transition-all bg-white">
+            <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx">
+            <i class="fas fa-cloud-upload-alt text-6xl text-blue-400 mb-6"></i>
+            <h2 class="text-2xl font-bold text-slate-800">Sube tu Currículum</h2>
+            <p class="text-slate-500 mt-2">PDF o Word • Análisis con IA chilena</p>
+        </div>
+
+        <div id="errorBox" class="hidden bg-red-50 border border-red-200 rounded-2xl p-6"></div>
+
+        <!-- Perfil -->
+        <div id="profileSection" class="hidden bg-white rounded-3xl p-8 shadow">
+            <!-- ... (puedes copiar y mejorar del original) -->
+        </div>
+
+        <!-- Sección de empleos y editor similar al original, pero actualizada -->
+    </main>
+
+    <script>
+        // Configuración
+        const BACKEND_URL = "https://tu-backend.vercel.app";  // Cambia por tu URL real
+
+        let rawMarkdown = "";
+        let profileData = null;
+
+        // Geolocalización
+        window.onload = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    // ... (mantener lógica similar)
+                });
+            }
+        };
+
+        // Dropzone
+        document.getElementById('dropZone').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showLoader("Procesando documento con MarkItDown...", "Extrayendo texto estructurado");
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const res = await fetch(`${BACKEND_URL}/api/convert`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.detail || "Error desconocido");
+
+                rawMarkdown = data.markdown;
+
+                // Enviar a análisis de perfil
+                await analyzeProfile(rawMarkdown);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                hideLoader();
+            }
+        });
+
+        async function analyzeProfile(markdown) {
+            // Llamada segura al proxy Gemini
+            const prompt = `Analiza este CV en formato Markdown y responde SOLO con JSON válido...`; // mejora tu prompt original
+
+            const body = {
+                contents: [{ parts: [{ text: prompt + "\n\nCV:\n" + markdown.substring(0, 12000) }] }],
+                generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+            };
+
+            const res = await fetch(`${BACKEND_URL}/api/ai`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const geminiData = await res.json();
+            // ... procesar respuesta (similar al código original pero más robusto)
+        }
+
+        // Funciones auxiliares: showLoader, hideLoader, showError, etc.
+    </script>
+</body>
+      </html>
